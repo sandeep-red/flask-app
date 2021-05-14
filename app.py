@@ -10,6 +10,7 @@ import firestore_funcs as ff
 from flask_cors import CORS
 import base64
 import json
+
 def cosine_similarity(vects):
   x, y = vects
   dotxy = Dot(axes=1)([x, y])
@@ -19,6 +20,8 @@ def cosine_similarity(vects):
 
 app = Flask(__name__)
 CORS(app)
+
+# models are in the shared drive
 model1 = load_model('models//vgg_model_new.h5', compile = False)
 print("vgg model loaded")
 model2 = load_model('models//resnet_model_new.h5', compile = False)
@@ -35,7 +38,6 @@ def get_emb():
     print("emb")
     data=request.get_json()
     file = data['image']
-    # print(file)
     print("file loaded")
     img = Image.open(BytesIO(base64.b64decode(data['image'][22:])))
     print("opened image")
@@ -67,8 +69,7 @@ def db_test():
 def predict_image():
     try:
         data=request.get_json()
-        file = data['image']
-        img =  Image.open(BytesIO(base64.b64decode(data['image'][22:])))
+        img = Image.open(BytesIO(base64.b64decode(data['image'][22:])))
         img=img.resize((224,224))
         img=np.array(img)
         emb1=model1.predict([np.expand_dims(img,axis=0)])
@@ -154,12 +155,13 @@ def db_insert():
             "message":"insertion error"
         }
 
-@app.route("/deletesample", methods=["DELETE"])
+@app.route("/deletesample", methods=["POST"])
 def delete_recent():
     try:
-        name = request.args.get('class')
+        body = request.get_json()
+        name = body['class']
         return {
-            "message":"succesful",
+            "message":"successful",
             "vgg":ff.deleteLatestDoc('vgg', name),
             "resnet":ff.deleteLatestDoc('resnet', name),
             "effnet":ff.deleteLatestDoc('effnet', name)
