@@ -37,8 +37,6 @@ def welcome():
 def get_emb():
     print("emb")
     data=request.get_json()
-    file = data['image']
-    print("file loaded")
     img = Image.open(BytesIO(base64.b64decode(data['image'][22:])))
     print("opened image")
     img=img.resize((224,224))
